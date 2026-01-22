@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>View Messages</title>
+  <style>
+    /* Reset & base styles */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; color: #333; }
+    a { text-decoration: none; color: inherit; }
+
+    /* Container */
+    .container { max-width: 700px; margin: 40px auto; padding: 20px; background: #fff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+
+    /* Header */
+    h1 { text-align: center; margin-bottom: 25px; color: #222; }
+
+    /* Navigation */
+    nav { text-align: center; margin-bottom: 30px; }
+    nav a { margin: 0 15px; color: #007BFF; font-weight: 500; }
+    nav a:hover { text-decoration: underline; }
+
+    /* Language selector */
+    select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; margin-bottom: 20px; font-size: 16px; }
+
+    /* Messages */
+    .message { background: #f9f9f9; padding: 15px 20px; border-radius: 10px; margin-bottom: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); transition: transform 0.2s; }
+    .message:hover { transform: translateY(-2px); }
+    .username { font-weight: bold; color: #007BFF; margin-right: 5px; }
+
+    /* Empty / loading state */
+    .status { text-align: center; color: #666; font-style: italic; margin-top: 20px; }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Navigation -->
+    <nav>
+      <a href="send_message.html">Send Message</a> |
+      <a href="index.html">View Messages</a>
+    </nav>
+
+    <h1>All Messages</h1>
+
+    <label for="viewLang">View messages in:</label>
+    <select id="viewLang">
+      <option value="en">English</option>
+      <option value="hi">Hindi</option>
+      <option value="ta">Tamil</option>
+    </select>
+
+    <div id="messages"><em class="status">Loading messages...</em></div>
+  </div>
+
+  <script>
+    const messagesDiv = document.getElementById('messages');
+    const viewLang = document.getElementById('viewLang');
+
+    async function fetchMessages() {
+      messagesDiv.innerHTML = '<em class="status">Loading messages...</em>';
+      try {
+        const res = await fetch(`http://127.0.0.1:5000/get_messages/${viewLang.value}`);
+        const data = await res.json();
+        messagesDiv.innerHTML = '';
+        if (data.length === 0) {
+          messagesDiv.innerHTML = '<em class="status">No messages yet.</em>';
+        } else {
+          data.forEach(msg => {
+            const div = document.createElement('div');
+            div.className = 'message';
+            div.innerHTML = `<span class="username">${msg.username}:</span> ${msg.message}`;
+            messagesDiv.appendChild(div);
+          });
+          messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+      } catch (err) {
+        messagesDiv.innerHTML = '<em class="status">No messages</em>';
+      }
+    }
+
+    viewLang.addEventListener('change', fetchMessages);
+    fetchMessages();
+    setInterval(fetchMessages, 5000);
+  </script>
+</body>
+</html>
